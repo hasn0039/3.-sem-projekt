@@ -1,0 +1,27 @@
+CREATE TABLE nurse (
+    nurse_id     SERIAL PRIMARY KEY,
+    first_name   TEXT NOT NULL,
+    last_name    TEXT NOT NULL
+);
+CREATE TABLE patient (
+    patient_id   SERIAL PRIMARY KEY,
+    first_name   TEXT NOT NULL,
+    last_name    TEXT NOT NULL,
+    birth_date   DATE NOT NULL
+);
+CREATE TABLE medicine (
+    medicine_id  SERIAL PRIMARY KEY,
+    name         TEXT NOT NULL,
+    amount       TEXT      -- fx '500 mg', '10 mg/ml'
+);
+CREATE TABLE dose_log (
+    dose_id      SERIAL PRIMARY KEY,
+
+    patient_id   INTEGER NOT NULL REFERENCES patient(patient_id),
+    nurse_id     INTEGER NOT NULL REFERENCES nurse(nurse_id),
+    medicine_id  INTEGER NOT NULL REFERENCES medicine(medicine_id),
+
+    amount       NUMERIC(10,2) NOT NULL,  
+    unit         TEXT NOT NULL,        
+    given_at     TIMESTAMP NOT NULL DEFAULT NOW()
+);
