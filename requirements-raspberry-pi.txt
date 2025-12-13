@@ -1,0 +1,39 @@
+# Raspberry Pi / MicroPython Requirements
+# For Raspberry Pi Pico or ESP32 with MicroPython
+
+# Core MicroPython Libraries (built-in)
+# No pip installation needed - these are included:
+# - machine
+# - onewire
+# - ds18x20
+# - network
+# - time
+# - json
+# - socket
+
+# MQTT Library for MicroPython
+umqtt.simple>=1.3.4
+
+# Optional: For enhanced functionality
+# ujson (built-in JSON support in MicroPython)
+# Note: MicroPython uses ujson instead of json
+
+# Installation Instructions:
+# 1. Upload main.py to your Raspberry Pi Pico/ESP32
+# 2. Install umqtt library via:
+#    - Using Thonny IDE: Tools > Manage packages > Search "micropython-umqtt" > Install
+#    - Or using mpremote: mpremote mip install umqtt
+#    - Or manually: Download from https://github.com/micropython/micropython-lib/tree/master/umqtt.simple
+
+# System Requirements:
+# - Raspberry Pi Pico W or ESP32 with WiFi capability
+# - MicroPython 1.19.1 or later
+# - WiFi network for MQTT connectivity
+# - MQTT broker (Mosquitto) running on network
+
+# Pin Configuration (from main.py):
+# Stepper Motor: GPIO 16, 17, 5, 18
+# Temperature Sensor: GPIO 4 (OneWire)
+# Photo Resistor/LDR: GPIO 32 (ADC)
+# Laser: GPIO 15
+# Laser LDR Detector: GPIO 34 (ADC)

@@ -1,0 +1,42 @@
+# Linux / Raspberry Pi OS Requirements for Node-RED Server
+# Install on the Raspberry Pi running the Node-RED dashboard
+
+# System Packages (install via apt-get)
+# nodejs>=14.0.0
+# npm>=6.0.0
+# mosquitto>=1.6.0
+# mosquitto-clients>=1.6.0
+
+# Node.js/npm packages (install via npm)
+# Run these commands:
+# npm install -g node-red
+# npm install -g pm2
+# cd ~/.node-red && npm install node-red-dashboard
+
+# Installation Commands:
+# sudo apt-get update
+# sudo apt-get install -y nodejs npm mosquitto mosquitto-clients
+# sudo systemctl start mosquitto
+# sudo systemctl enable mosquitto
+# sudo npm install -g node-red
+# sudo npm install -g pm2
+# pm2 start `which node-red` -- --max-old-space-size=256
+# pm2 save
+# pm2 startup
+
+# Optional Node-RED Dashboard Extensions
+# node-red-contrib-mqtt-broker (if using internal MQTT)
+# node-red-contrib-slack (for Slack notifications)
+# node-red-contrib-influxdb (for data logging)
+
+# System Requirements:
+# - Raspberry Pi OS (Debian-based Linux)
+# - 1GB+ RAM recommended
+# - 2GB+ SD card free space
+# - Python 3.7+ (for running main.py on same device)
+# - Active internet connection for initial installation
+
+# Service Management:
+# Start Node-RED: node-red
+# Access Dashboard: http://localhost:1880/ui
+# MQTT Broker: localhost:1883 (when using Mosquitto)
