@@ -5,9 +5,9 @@ import ubinascii
 import json
 from umqtt.simple import MQTTClient
 
-# -----------------------
+
 # Wi-Fi til Raspberry Pi
-# -----------------------
+
 SSID = "ekgruppe7pi"
 PASSWORD = "cisco123"
 
@@ -21,9 +21,9 @@ while not wlan.isconnected():
 print("ESP32-2 forbundet til Wi-Fi")
 print("IP:", wlan.ifconfig())
 
-# -----------------------
+
 # ESP-NOW init
-# -----------------------
+
 esp = espnow.ESPNow()
 esp.active(True)
 
@@ -34,7 +34,7 @@ esp.add_peer(ESP32_1_MAC)
 print("ESP-NOW aktiv (ESP32-2)")
 print("ESP32-1 peer:", ubinascii.hexlify(ESP32_1_MAC, ":").decode())
 
-# -----------------------
+
 # MQTT config (Pi)
 
 MQTT_BROKER = "192.168.1.10"   # Raspberry Pi IP
@@ -56,9 +56,8 @@ mqtt.subscribe(TOPIC_COMMAND)
 
 print("MQTT forbundet til Raspberry Pi")
 
-# -----------------------
 # Main loop
-# -----------------------
+
 while True:
     # Tjek MQTT (kommandoer fra Pi)
     mqtt.check_msg()
