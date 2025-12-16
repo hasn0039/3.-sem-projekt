@@ -46,9 +46,21 @@ TOPIC_COMMAND = b"esp32/command"
 mqtt = MQTTClient(CLIENT_ID, MQTT_BROKER)
 
 def mqtt_callback(topic, msg):
-    print("MQTT kommando:", msg)
-    # Send kommando videre til ESP32-1
-    esp.send(ESP32_1_MAC, msg)
+    try:
+        message = msg.decode()
+        print("MQTT kommando:", message)
+
+        # REGEX-VALIDERING
+        # Tillad fx: "DISPENSE:10" eller "25"
+        if not re.match(r"^(DISPENSE:\d+|\d+)$", message):
+            print("Ugyldigt kommandoformat – afvist")
+            return
+
+        # Send kun gyldige kommandoer videre til ESP32-1
+        esp.send(ESP32_1_MAC, message)
+
+    except Exception as e:
+        print("Fejl i MQTT callback:", e)
 
 mqtt.set_callback(mqtt_callback)
 mqtt.connect()
