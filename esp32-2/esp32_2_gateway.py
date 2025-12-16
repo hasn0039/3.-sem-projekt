@@ -36,7 +36,7 @@ print("ESP32-1 peer:", ubinascii.hexlify(ESP32_1_MAC, ":").decode())
 
 # -----------------------
 # MQTT config (Pi)
-# -----------------------
+
 MQTT_BROKER = "192.168.1.10"   # Raspberry Pi IP
 CLIENT_ID = "esp32_gateway"
 
