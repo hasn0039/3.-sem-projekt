@@ -31,8 +31,7 @@ class LiquidDispensationSystem:
             # Initialize Stepper Motor
             print("Initializing Stepper Motor...")
             in1 = Pin(16, Pin.OUT)
-            in2
-            = Pin(17, Pin.OUT)
+            in2 = Pin(17, Pin.OUT)
             in3 = Pin(5, Pin.OUT)
             in4 = Pin(18, Pin.OUT)
             self.stepper = Stepper(in1, in2, in3, in4, delay=1, mode=0)
