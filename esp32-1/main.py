@@ -72,11 +72,10 @@ class LiquidDispensationSystem:
             return True
         except Exception as e:
             print(f"ERROR: Failed to connect to MQTT: {e}")
-            print("Running in standalone mode (no Node-RED control)")
             return False
     
     def mqtt_callback(self, topic, msg):
-        """Handle incoming MQTT messages from Node-RED"""
+        """Handle incoming MQTT messages from flask"""
         try:
             message = msg.decode('utf-8')
             print(f"Received command: {message} on topic: {topic}")
@@ -139,7 +138,7 @@ class LiquidDispensationSystem:
             print(f"Final water level: {final_level}")
             print(f"Water level change: {displacement}")
             
-            # Publish results to Node-RED
+            # Publish results to flask
             self.publish_status(ml_amount, initial_level, final_level, displacement)
             
         except Exception as e:
@@ -169,7 +168,7 @@ class LiquidDispensationSystem:
             return None
     
     def publish_status(self, ml_dispensed, level_before, level_after, displacement):
-        """Publish system status to Node-RED"""
+        """Publish system status to flask"""
         if not self.client:
             return
         
