@@ -186,7 +186,7 @@ class LiquidDispensationSystem:
             print(f"ERROR publishing status: {e}")
     
     def publish_sensor_data(self):
-        """Continuously publish sensor data to Node-RED"""
+        """Continuously publish sensor data to flask"""
         if not self.client:
             return
         
