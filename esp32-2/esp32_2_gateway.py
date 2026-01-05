@@ -51,7 +51,7 @@ def mqtt_callback(topic, msg):
         print("MQTT kommando:", message)
 
         # REGEX-VALIDERING
-        # Tillad fx: "DISPENSE:10" eller "25"
+        # Tillad fx: "DISPENSE: "10" eller "25"
         if not re.match(r"^(DISPENSE:\d+|\d+)$", message):
             print("Ugyldigt kommandoformat – afvist")
             return
