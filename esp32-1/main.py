@@ -227,7 +227,7 @@ class LiquidDispensationSystem:
                     if data:
                         print(f"Water Level: {data['water_level']}")
                         print(f"Temperature: {data['temperature']}")
-                        print(f"Laser Beam: {'BROKEN  if data['laser_beam_broken'] else 'OK'}")
+                        print(f"Laser Beam: {'BROKEN ' if data['laser_beam_broken'] else 'OK '}")
                     
                     self.publish_sensor_data()
                 
