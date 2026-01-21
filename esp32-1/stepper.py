@@ -1,5 +1,6 @@
-from machine import Pin
 import time
+from machine import Pin
+
 
 class Stepper:
     """Stepper motor controller for 28BYJ-48 with ULN2003 driver"""
