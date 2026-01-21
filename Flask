@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, render_template
 import psycopg2
 import json
 
-app = Flask(_name_)
+app = Flask(__name__)
 
 DB_CONFIG = {
     "dbname": "liquid_system",
@@ -100,5 +100,5 @@ def command_history():
 
     return render_template("commands.html", rows=data)
 
-if _name_ == "_main_":
+if __name__ == "_main_":
     app.run(host="0.0.0.0", port=5000)
