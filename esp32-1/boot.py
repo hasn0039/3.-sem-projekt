@@ -4,8 +4,6 @@ import espnow
 import ubinascii
 import esp
 import gc
-import network
-import espnow
 
 
 esp.osdebug(None)
