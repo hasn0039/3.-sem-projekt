@@ -1,19 +1,10 @@
 import json
-import _thread
 import time
 from machine import Pin, ADC
 from umqtt.simple import MQTTClient
 import espnow
 
 # MQTT Configuration
-
-# Threading setup for sensor reading
-latest_data = {
-    "water_level": None,
-    "temperature": None,
-    "laser_beam_broken": False
-}
-data_lock = _thread.allocate_lock()
 
 class LiquidDispensationSystem:
     
@@ -28,7 +19,6 @@ class LiquidDispensationSystem:
         self.laser = None
         self.current_level = 0
         self.is_running = False
-        self.threads_running = False
         
     def init_components(self):
         """Initialize all hardware components"""
@@ -156,7 +146,7 @@ class LiquidDispensationSystem:
             self.is_running = False
             print("✓ Dispensing complete\n")
     
-    def read_sensors(self):
+    def sensor_reader_loop(self):
         """Read all sensors and return data"""
         data = {}
         
@@ -176,77 +166,24 @@ class LiquidDispensationSystem:
             print(f"ERROR reading sensors: {e}")
             return None
     
-    def publish_status(self, ml_dispensed, level_before, level_after, displacement):
-        """Publish system status to flask"""
-        if not self.client:
-            return
-        
+    def network_sender_loop(self):
+        """Send sensor data to MQTT"""
         try:
-            status = {
-                'ml_dispensed': ml_dispensed,
-                'level_before': level_before,
-                'level_after': level_after,
-                'displacement': displacement,
-                'timestamp': time.time()
-            }
-            self.client.publish(MQTT_TOPIC_STATUS, json.dumps(status))
-        except Exception as e:
-            print(f"ERROR publishing status: {e}")
-    
-    def publish_sensor_data(self):
-        """Continuously publish sensor data to flask"""
-        if not self.client:
-            return
-        
-        try:
-            data = self.read_sensors()
-            if data:
+            data = self.sensor_reader_loop()
+            if data and self.client:
+                water_level = data["water_level"]
+                temperature = data["temperature"]
+                
                 # Publish water level
-                self.client.publish(MQTT_TOPIC_LEVEL, str(data['water_level']))
+                if water_level is not None:
+                    self.client.publish(MQTT_TOPIC_LEVEL, str(water_level))
                 
                 # Publish temperature
-                if data['temperature']:
-                    temp_str = json.dumps(data['temperature'])
+                if temperature:
+                    temp_str = json.dumps(temperature)
                     self.client.publish(MQTT_TOPIC_TEMP, temp_str)
         except Exception as e:
-            print(f"ERROR publishing sensor data: {e}")
-    
-    def sensor_reader_thread(self):
-        """Background thread: continuously read sensors"""
-        while self.threads_running:
-            try:
-                data = self.read_sensors()
-                if data:
-                    with data_lock:
-                        latest_data["water_level"] = data.get('water_level')
-                        latest_data["temperature"] = data.get('temperature')
-                        latest_data["laser_beam_broken"] = data.get('laser_beam_broken', False)
-            except Exception as e:
-                print(f"ERROR in sensor reader thread: {e}")
-            
-            time.sleep_ms(50)  # Read sensors every 50ms
-    
-    def network_sender_thread(self):
-        """Background thread: send sensor data to MQTT"""
-        while self.threads_running:
-            try:
-                if self.client:
-                    with data_lock:
-                        water_level = latest_data["water_level"]
-                        temperature = latest_data["temperature"]
-                    
-                    # Publish water level
-                    if water_level is not None:
-                        self.client.publish(MQTT_TOPIC_LEVEL, str(water_level))
-                    
-                    # Publish temperature
-                    if temperature:
-                        temp_str = json.dumps(temperature)
-                        self.client.publish(MQTT_TOPIC_TEMP, temp_str)
-            except Exception as e:
-                print(f"ERROR in network sender thread: {e}")
-            
-            time.sleep(2)  # Send every 2 seconds
+            print(f"ERROR in network sender: {e}")
     
     def run(self):
         """Main event loop"""
@@ -254,11 +191,10 @@ class LiquidDispensationSystem:
         
         mqtt_connected = self.connect_mqtt()
         
-        # Start background threads
-        self.threads_running = True
-        _thread.start_new_thread(self.sensor_reader_thread, ())
-        _thread.start_new_thread(self.network_sender_thread, ())
-        print("✓ Background threads started\n")
+        sensor_timer = 0
+        network_timer = 0
+        
+        print("✓ Main loop started\n")
         
         try:
             while True:
@@ -269,14 +205,17 @@ class LiquidDispensationSystem:
                     except Exception as e:
                         print(f"MQTT check error: {e}")
                 
-                # Main thread can handle motor/alarms with latest sensor data
-                with data_lock:
-                    water_level = latest_data["water_level"]
-                    laser_broken = latest_data["laser_beam_broken"]
+                # Read sensors every 50ms
+                sensor_timer += 100
+                if sensor_timer >= 50:
+                    data = self.sensor_reader_loop()
+                    sensor_timer = 0
                 
-                # Example: trigger alarm if laser beam is broken
-                if laser_broken:
-                    print("⚠️  WARNING: Laser beam is broken!")
+                # Send to MQTT every 2 seconds
+                network_timer += 100
+                if network_timer >= 2000:
+                    self.network_sender_loop()
+                    network_timer = 0
                 
                 time.sleep_ms(100)  # Check every 100ms
                 
@@ -287,10 +226,6 @@ class LiquidDispensationSystem:
     def shutdown(self):
         """Clean shutdown of all components"""
         print("Shutting down system...")
-        
-        # Stop background threads
-        self.threads_running = False
-        time.sleep(1)  # Give threads time to exit
         
         # Reset stepper
         if self.stepper:
