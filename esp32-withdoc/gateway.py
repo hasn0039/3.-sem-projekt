@@ -3,11 +3,11 @@ import espnow
 import time
 import ubinascii
 import json
-import re
 from umqtt.simple import MQTTClient
+import re
 
 
-
+# Wi-Fi til Raspberry Pi
 
 SSID = "ekgruppe7pi"
 PASSWORD = "cisco123"
@@ -23,12 +23,12 @@ print("ESP32-2 forbundet til Wi-Fi")
 print("IP:", wlan.ifconfig())
 
 
-
+# ESP-NOW init
 
 esp = espnow.ESPNow()
 esp.active(True)
 
-
+# MAC på ESP32-1 (SKAL rettes)
 ESP32_1_MAC = b'\x24\x6F\x28\xAA\xBB\xCC'
 esp.add_peer(ESP32_1_MAC)
 
@@ -36,9 +36,9 @@ print("ESP-NOW aktiv (ESP32-2)")
 print("ESP32-1 peer:", ubinascii.hexlify(ESP32_1_MAC, ":").decode())
 
 
+# MQTT config (Pi)
 
-
-MQTT_BROKER = "192.168.1.10"   
+MQTT_BROKER = "192.168.1.10"   # Raspberry Pi IP
 CLIENT_ID = "esp32_gateway"
 
 TOPIC_SENSOR = b"esp32/sensors"
@@ -51,13 +51,13 @@ def mqtt_callback(topic, msg):
         message = msg.decode()
         print("MQTT kommando:", message)
 
-        
-        
+        # REGEX-VALIDERING
+        # Tillad fx: "DISPENSE: "10" eller "25"
         if not re.match(r"^(DISPENSE:\d+|\d+)$", message):
             print("Ugyldigt kommandoformat – afvist")
             return
 
-        
+        # Send kun gyldige kommandoer videre til ESP32-1
         esp.send(ESP32_1_MAC, message)
 
     except Exception as e:
@@ -69,13 +69,13 @@ mqtt.subscribe(TOPIC_COMMAND)
 
 print("MQTT forbundet til Raspberry Pi")
 
-
+# Main loop
 
 while True:
-    
+    # Tjek MQTT (kommandoer fra Pi)
     mqtt.check_msg()
 
-    
+    # Tjek ESP-NOW (data fra ESP32-1)
     host, msg = esp.recv()
     if msg:
         try:

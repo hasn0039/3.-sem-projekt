@@ -1,0 +1,104 @@
+from flask import Flask, request, jsonify, render_template
+import psycopg2
+import json
+
+app = Flask(__name__)
+
+DB_CONFIG = {
+    "dbname": "liquid_system",
+    "user": "liquid_user",
+    "password": "liquid_pass",
+    "host": "127.0.0.1"
+}
+
+
+def db_conn():
+    return psycopg2.connect(**DB_CONFIG)
+
+
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+
+@app.route("/api/telemetry", methods=["POST"])
+def api_telemetry():
+    data = request.get_json(force=True)
+    source = data.get("source", "unknown")
+
+    with db_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO telemetry (source, payload) VALUES (%s, %s)",
+                (source, json.dumps(data))
+            )
+        conn.commit()
+
+    return jsonify({"ok": True})
+
+@app.route("/dashboard")
+def dashboard():
+    with db_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT id, source, payload, created_at
+                FROM telemetry
+                ORDER BY id DESC
+                LIMIT 20
+            """)
+            rows = cur.fetchall()
+
+    data = []
+    for r in rows:
+        data.append({
+            "id": r[0],
+            "source": r[1],
+            "payload": r[2],
+            "created_at": r[3]
+        })
+
+    return render_template("dashboard.html", rows=data)
+
+@app.route("/send-command", methods=["POST"])
+def send_command():
+    target = request.form["target"]
+    command = request.form["command"]
+    payload = json.loads(request.form["payload"])
+
+    with db_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                INSERT INTO commands (target, command, payload)
+                VALUES (%s, %s, %s)
+            """, (target, command, json.dumps(payload)))
+        conn.commit()
+
+    return "Command sent. <a href='/dashboard'>Back</a>"
+
+@app.route("/commands")
+def command_history():
+    with db_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT id, target, command, payload, executed, created_at
+                FROM commands
+                ORDER BY id DESC
+                LIMIT 20
+            """)
+            rows = cur.fetchall()
+
+    data = []
+    for r in rows:
+        data.append({
+            "id": r[0],
+            "target": r[1],
+            "command": r[2],
+            "payload": json.loads(r[3]),
+            "executed": r[4],
+            "created_at": r[5]
+        })
+
+    return render_template("commands.html", rows=data)
+
+if __name__ == "_main_":
+    app.run(host="0.0.0.0", port=5000)

@@ -3,7 +3,7 @@ from machine import Pin
 
 
 class Stepper:
-    """Stepper motor controller for 28BYJ-48 with ULN2003 driver"""
+    
     FULL_ROTATION = int(4075.7728395061727 / 8)
 
     HALF_STEP = [
@@ -36,12 +36,12 @@ class Stepper:
         self.pin2 = Pin(pin2, Pin.OUT)
         self.pin3 = Pin(pin3, Pin.OUT)
         self.pin4 = Pin(pin4, Pin.OUT)
-        self.delay = delay  # Recommend 10+ for FULL_STEP, 1 is OK for HALF_STEP
+        self.delay = delay  
         
         self.reset()
         
     def step(self, count, direction=1):
-        """Rotate count steps. direction = -1 means backwards"""
+        
         if count < 0:
             direction = -1
             count = -count
@@ -55,11 +55,11 @@ class Stepper:
         self.reset()
     
     def angle(self, r, direction=1):
-        """Rotate by angle (degrees)"""
+        
         self.step(int(self.FULL_ROTATION * r / 360), direction)
     
     def reset(self):
-        """Reset all pins to 0"""
+        
         self.pin1(0) 
         self.pin2(0) 
         self.pin3(0) 
